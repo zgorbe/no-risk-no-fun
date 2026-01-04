@@ -28,7 +28,6 @@
 
     function getSurroundingNumbers(data, pair, radius) {
         const surroundingNumbers = new Set();
-
         const allRowsIndicesWithPair = data.reduce((acc, row, rowIndex) => {
             if (row.includes(pair[0]) && row.includes(pair[1]) && rowIndex > 0) {
                 acc.push(rowIndex);
@@ -66,6 +65,11 @@
         });
     }
 
+    function getTop20SurroundingNumbers(surroundingNumbersDict) {
+        return Object.keys(surroundingNumbersDict)
+            .sort((a, b) => surroundingNumbersDict[b] - surroundingNumbersDict[a]).slice(0, 20).map(Number);
+    }
+
     calculateBtn.addEventListener('click', () => {
         console.log(fileContent);
         console.log(radius);
@@ -83,6 +87,9 @@
             });
         });
         keepSurroundingNumbersWithGreaterThan1(surroundingNumbersDict);
+        const top20SurroundingNumbers = getTop20SurroundingNumbers(surroundingNumbersDict);
         console.log(surroundingNumbersDict);
+        console.log(top20SurroundingNumbers);
+        result.innerHTML = 'Creating pairs with: ' + top20SurroundingNumbers.join(', ');
     });
 })();
