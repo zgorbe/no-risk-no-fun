@@ -1,11 +1,27 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>No risk no fun</title>
 </head>
-<body>
-    <h1 style="text-align: center;">No risk no fun</h1>
+
+<body style="text-align: center;">
+    <h1>No risk no fun</h1>
+    <div style="text-align: left; margin-left: auto; margin-right: auto; width: 400px;">
+        <div style="margin-bottom: 20px;">
+            <label for="data">File:</label>
+            <input type="file" id="file" accept=".csv">
+        </div>
+        <div style="margin-bottom: 20px;">
+            <label for="radius">Radius:</label>
+            <input type="number" id="radius" value="2" min="0" max="100">
+        </div>
+        <button id="calculateBtn" type="button">Calculate</button>
+    </div>
+    <div id="result"></div>
+    <script src="src/index.js"></script>
 </body>
+
 </html>
