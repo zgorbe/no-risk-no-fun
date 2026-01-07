@@ -3,6 +3,7 @@
     const radiusInput = document.getElementById('radius');
     const calculateBtn = document.getElementById('calculateBtn');
     const result = document.getElementById('result');
+    const logContainer = document.getElementById('logContainer');
     let fileContent = '';
     let radius = 2;
 
@@ -19,6 +20,17 @@
         radius = Number(e.target.value);
     });
 
+    function appendToLog(message, useHTML = false) {
+        const logElement = document.createElement('div');
+        logElement.style.marginBottom = '10px';
+        if (useHTML) {
+            logElement.innerHTML = message;
+        } else {
+            logElement.textContent = message;
+        }
+        logContainer.appendChild(logElement);
+    }
+
     // Returns all possible pairs from the array of numbers flattened
     function getPairsFromRow(row) {
         return row.map((value, index) => {
@@ -27,7 +39,6 @@
     }
 
     function getSurroundingNumbers(data, pair, radius) {
-        const surroundingNumbers = new Set();
         const allRowsIndicesWithPair = data.reduce((acc, row, rowIndex) => {
             if (row.includes(pair[0]) && row.includes(pair[1]) && rowIndex > 0) {
                 acc.push(rowIndex);
@@ -35,8 +46,14 @@
             return acc;
         }, []);
 
+        appendToLog(`Pair: ${pair.join(', ')} - Row: ${allRowsIndicesWithPair.join(', ')}`);
+
+        const surroundingNumbersDict = {};
+
         allRowsIndicesWithPair.forEach(rowIndex => {
+            const surroundingNumbers = new Set();
             let rowsAbove, rowsBelow;
+
             if (rowIndex < radius) {
                 rowsAbove = data.slice(0, rowIndex);
             } else {
@@ -52,9 +69,12 @@
             allRows.forEach(row => {
                 row.forEach(value => surroundingNumbers.add(value));
             });
+            surroundingNumbers.forEach(number => {
+                surroundingNumbersDict[number] = (surroundingNumbersDict[number] || 0) + 1;
+            });
         });
 
-        return Array.from(surroundingNumbers);
+        return surroundingNumbersDict;
     }
 
     function keepSurroundingNumbersWithGreaterThan1(surroundingNumbersDict) {
@@ -65,31 +85,33 @@
         });
     }
 
-    function getTop20SurroundingNumbers(surroundingNumbersDict) {
+    function getTopNSurroundingNumbers(surroundingNumbersDict, n) {
         return Object.keys(surroundingNumbersDict)
-            .sort((a, b) => surroundingNumbersDict[b] - surroundingNumbersDict[a]).slice(0, 20).map(Number);
+            .sort((a, b) => surroundingNumbersDict[b] - surroundingNumbersDict[a]).slice(0, n).map(Number);
     }
 
     calculateBtn.addEventListener('click', () => {
-        console.log(fileContent);
-        console.log(radius);
         const data = fileContent.split('\n').map(line => line.split(/,|;/).map(Number));
-        console.log(data);
-
         const pairsFromFirstRow = getPairsFromRow(data[0]);
-        console.log(pairsFromFirstRow);
-
         const surroundingNumbersDict = {};
+
         pairsFromFirstRow.forEach(pair => {
-            const surroundingNumbers = getSurroundingNumbers(data, pair, radius);
-            surroundingNumbers.forEach(number => {
-                surroundingNumbersDict[number] = (surroundingNumbersDict[number] || 0) + 1;
+            const numbersDict = getSurroundingNumbers(data, pair, radius);
+            Object.keys(numbersDict).forEach(number => {
+                surroundingNumbersDict[number] = (surroundingNumbersDict[number] || 0) + numbersDict[number];
             });
         });
+
         keepSurroundingNumbersWithGreaterThan1(surroundingNumbersDict);
-        const top20SurroundingNumbers = getTop20SurroundingNumbers(surroundingNumbersDict);
-        console.log(surroundingNumbersDict);
-        console.log(top20SurroundingNumbers);
-        result.innerHTML = 'Creating pairs with: ' + top20SurroundingNumbers.join(', ');
+
+        const topNSurroundingNumbers = getTopNSurroundingNumbers(surroundingNumbersDict, 90);
+
+        const formattedDict = Object.entries(surroundingNumbersDict)
+            .sort((a, b) => b[1] - a[1])
+            .map(([number, count]) => `<div style="margin-left: 20px;">${number}: <strong>${count}</strong></div>`)
+            .join('');
+        appendToLog(`<div><strong>Surrounding numbers dict (${Object.keys(surroundingNumbersDict).length}):</strong>${formattedDict}</div>`, true);
+
+        // result.innerHTML = `Ordered numbers: ${topNSurroundingNumbers.join(', ')}`;
     });
 })();
