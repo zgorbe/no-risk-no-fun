@@ -125,7 +125,8 @@
     }
 
     function mergeDicts(dict1, dict2) {
-        return Object.keys(dict1).reduce((acc, number) => {
+        const allKeys = new Set([...Object.keys(dict1), ...Object.keys(dict2)]);
+        return Array.from(allKeys).reduce((acc, number) => {
             acc[number] = (dict1[number] || 0) + (dict2[number] || 0);
             return acc;
         }, {});
