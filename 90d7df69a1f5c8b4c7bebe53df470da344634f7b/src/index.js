@@ -90,6 +90,47 @@
             .sort((a, b) => surroundingNumbersDict[b] - surroundingNumbersDict[a]).slice(0, n).map(Number);
     }
 
+    function appendSurroundingNumbersToLog(surroundingNumbersDict) {
+        const formattedDict = Object.entries(surroundingNumbersDict)
+            .sort((a, b) => b[1] - a[1])
+            .map(([number, count]) => `<div style="margin-left: 20px;">${number}: <strong>${count}</strong></div>`)
+            .join('');
+        appendToLog(`<div><strong>Surrounding numbers dict (${Object.keys(surroundingNumbersDict).length}):</strong>${formattedDict}</div>`, true);
+    }
+
+    function appendSurroundingNumbersSideBySideToLog(surroundingNumbersDict1, surroundingNumbersDict2) {
+        const formatDict = (dict) => {
+            return Object.entries(dict)
+                .sort((a, b) => b[1] - a[1])
+                .map(([number, count]) => `<div style="margin-left: 20px;">${number}: <strong>${count}</strong></div>`)
+                .join('');
+        };
+
+        const formattedDict1 = formatDict(surroundingNumbersDict1);
+        const formattedDict2 = formatDict(surroundingNumbersDict2);
+
+        const html = `
+            <div style="display: flex; gap: 20px;">
+                <div style="flex: 1;">
+                    <strong>Surrounding numbers dict (${Object.keys(surroundingNumbersDict1).length}):</strong>
+                    ${formattedDict1}
+                </div>
+                <div style="flex: 1;">
+                    <strong>Surrounding numbers dict (${Object.keys(surroundingNumbersDict2).length}):</strong>
+                    ${formattedDict2}
+                </div>
+            </div>
+        `;
+        appendToLog(html, true);
+    }
+
+    function mergeDicts(dict1, dict2) {
+        return Object.keys(dict1).reduce((acc, number) => {
+            acc[number] = (dict1[number] || 0) + (dict2[number] || 0);
+            return acc;
+        }, {});
+    }
+
     calculateBtn.addEventListener('click', () => {
         const data = fileContent.split('\n').map(line => line.split(/,|;/).map(Number));
         const pairsFromFirstRow = getPairsFromRow(data[0]);
@@ -102,16 +143,21 @@
             });
         });
 
+        const surroundingNumbersDictForLastItemInFirstRow = {};
+        const lastItemInFirstRow = data[0][data[0].length - 1];
+        console.log(lastItemInFirstRow);
+        const numbersDict = getSurroundingNumbers(data, [lastItemInFirstRow, lastItemInFirstRow], radius);
+        Object.keys(numbersDict).forEach(number => {
+            surroundingNumbersDictForLastItemInFirstRow[number] = (surroundingNumbersDictForLastItemInFirstRow[number] || 0) + numbersDict[number];
+        });
+
         keepSurroundingNumbersWithGreaterThan1(surroundingNumbersDict);
+        keepSurroundingNumbersWithGreaterThan1(surroundingNumbersDictForLastItemInFirstRow);
 
-        const topNSurroundingNumbers = getTopNSurroundingNumbers(surroundingNumbersDict, 90);
+        appendSurroundingNumbersSideBySideToLog(surroundingNumbersDict, surroundingNumbersDictForLastItemInFirstRow);
 
-        const formattedDict = Object.entries(surroundingNumbersDict)
-            .sort((a, b) => b[1] - a[1])
-            .map(([number, count]) => `<div style="margin-left: 20px;">${number}: <strong>${count}</strong></div>`)
-            .join('');
-        appendToLog(`<div><strong>Surrounding numbers dict (${Object.keys(surroundingNumbersDict).length}):</strong>${formattedDict}</div>`, true);
-
+        const mergedDict = mergeDicts(surroundingNumbersDict, surroundingNumbersDictForLastItemInFirstRow);
+        appendSurroundingNumbersToLog(mergedDict);
         // result.innerHTML = `Ordered numbers: ${topNSurroundingNumbers.join(', ')}`;
     });
 })();
